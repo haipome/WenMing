@@ -1,0 +1,9 @@
+[book]
+title = "文明：关于秩序、自由与人类实验的思考"
+authors = ["杨海坡"]
+language = "zh"
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "ayu"
+additional-css = ["src/custom.css"]
