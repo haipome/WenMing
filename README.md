@@ -2,7 +2,7 @@
 
 **杨海坡 著**
 
-> [**阅读全文 (PDF)**](文明.pdf)
+> [**在线阅读**](https://haipome.github.io/WenMing/) | [**下载 PDF**](文明.pdf)
 
 ---
 
