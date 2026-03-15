@@ -2,6 +2,8 @@
 
 **杨海坡 著**
 
+> 本书文章来源于博客 [haipo.me](https://www.haipo.me/)
+>
 > [**在线阅读**](https://haipome.github.io/WenMing/) | [**下载 PDF**](文明.pdf)
 
 ---
