@@ -2,11 +2,13 @@
 """从博客链接抓取文章，转为 Markdown 并添加到 mdBook 中
 
 用法：
-  python3 add_article.py <博客URL> <部分编号> [文章短名]
+  python3 add_article.py <博客URL> <部分编号> [文章短名]   # 添加新文章
+  python3 add_article.py <博客URL>                         # 更新已有文章（自动匹配标题）
 
 示例：
   python3 add_article.py https://www.haipo.me/2026/03/blog-post_87.html 1
   python3 add_article.py https://www.haipo.me/2026/03/blog-post.html 2 新文章名
+  python3 add_article.py https://www.haipo.me/2026/03/blog-post_11.html  # 更新
 """
 
 import json
@@ -140,6 +142,24 @@ def safe_filename(title):
     return name.strip()[:80] or "untitled"
 
 
+def find_existing_file(title):
+    """根据标题搜索已有的文章文件，返回文件路径或 None"""
+    for d in os.listdir(BOOK_SRC):
+        part_dir = os.path.join(BOOK_SRC, d)
+        if not os.path.isdir(part_dir) or not d.startswith("part"):
+            continue
+        for f in os.listdir(part_dir):
+            if not f.endswith(".md"):
+                continue
+            filepath = os.path.join(part_dir, f)
+            with open(filepath, "r", encoding="utf-8") as fh:
+                first_line = fh.readline().strip()
+            # mdBook 格式：第一行是 # 标题
+            if first_line == f"# {title}":
+                return filepath
+    return None
+
+
 def update_summary(part_num, title, rel_path):
     """在 SUMMARY.md 的对应部分末尾添加新条目"""
     with open(SUMMARY_PATH, "r", encoding="utf-8") as f:
@@ -182,12 +202,12 @@ def update_summary(part_num, title, rel_path):
 
 
 def main():
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 2:
         print(__doc__)
         sys.exit(1)
 
     blog_url = sys.argv[1]
-    part_num = int(sys.argv[2])
+    part_num = int(sys.argv[2]) if len(sys.argv) >= 3 else None
     short_name = sys.argv[3] if len(sys.argv) > 3 else None
 
     print(f"正在获取博客文章列表...")
@@ -209,8 +229,23 @@ def main():
         content_html = entry["summary"]["$t"]
 
     body = html_to_markdown(content_html)
+    md_content = f"# {title}\n\n{body}\n"
 
-    # 确定编号和文件名
+    # 检查是否已有同名文章
+    existing = find_existing_file(title)
+    if existing:
+        with open(existing, "w", encoding="utf-8") as f:
+            f.write(md_content)
+        print(f"已更新: {existing}")
+        print(f"\n完成！git push 后 GitHub Pages 会自动更新")
+        return
+
+    # 新增模式：需要部分编号
+    if part_num is None:
+        print(f"错误：未找到已有文章，新增需要指定部分编号")
+        print(f"用法：python3 add_article.py <URL> <部分编号>")
+        sys.exit(1)
+
     chapter_num = get_next_chapter_num()
     file_short = short_name or safe_filename(title)
     filename = f"{chapter_num:02d}-{file_short}.md"
@@ -218,13 +253,10 @@ def main():
     os.makedirs(part_dir, exist_ok=True)
     filepath = os.path.join(part_dir, filename)
 
-    # 写入 Markdown（mdBook 格式：# 标题 + 正文）
-    md_content = f"# {title}\n\n{body}\n"
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(md_content)
     print(f"已保存: {filepath}")
 
-    # 更新 SUMMARY.md
     rel_path = f"part{part_num}/{filename}"
     update_summary(part_num, title, rel_path)
     print(f"已更新 SUMMARY.md")
