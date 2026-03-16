@@ -13,11 +13,24 @@
   - `book/src/custom.css` — 自定义样式
   - `book/src/part{1-4}/` — 各部分文章（Markdown）
   - `book/book.toml` — mdBook 配置
+- `add_article.py` — 从博客（haipo.me）抓取文章，自动转 Markdown 并添加到 mdBook
 - `build_book.py` — PDF 构建脚本（从 book/src 读取源文件）
-- `.github/workflows/deploy.yml` — GitHub Pages 自动部署
+- `README.md` — 项目说明文档
+- `文明.md` — PDF 构建的中间产物（由 build_book.py 生成）
 - `文明.pdf` — 生成的 PDF 文件
+- `.github/workflows/deploy.yml` — GitHub Pages 自动部署
 
 ## 添加新文章流程
+
+**方式一（推荐）：使用脚本自动抓取**
+
+```
+python3 add_article.py <博客URL> <部分编号>
+```
+
+脚本会自动创建 `.md` 文件并更新 `SUMMARY.md`，之后手动更新 `build_book.py` 的 `STRUCTURE` 即可生成 PDF。
+
+**方式二：手动添加**
 
 1. 在 `book/src/partN/` 下创建 `.md` 文件，格式为 `# 标题` + 正文
 2. 更新 `book/src/SUMMARY.md` 加入条目
